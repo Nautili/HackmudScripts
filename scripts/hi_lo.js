@@ -1,4 +1,4 @@
-function (context, args) { //bet:"", action:""
+function (context, args) { //bet:"1KGC", action:""
   var deck = [];
   var draws = [];
   var suits = ["D", "L", "N", "V"];
@@ -6,7 +6,7 @@ function (context, args) { //bet:"", action:""
 
   var curGame = #db.f({script:"hi_lo", user:user}).first();
   if (curGame == null) {
-    if (args.action == null || args.action != "start") {
+    if (args == null || args.action == null || args.action != "start") {
       var m =
           "█ █ ███\n" +
           "███  █  █  ███\n" +
@@ -15,12 +15,32 @@ function (context, args) { //bet:"", action:""
           "On each turn, guess whether the next card will be higher or lower.\n" +
           "Make five correct guesses and win four times your bet.\n" +
           "Make ten correct guesses and win ten times your bet.\n" +
-          "Aces are high and drawing the same value twice is a free guess." +
+          "Aces are low and drawing the same value twice is a free guess.\n" +
           "Use action:\"start\" and make a bet up to 1MGC with bet:\"amount\" to begin!";
       return {ok:true, msg:m}
     }
 
-    //TODO: take bet with escrow account
+    var bet = args.bet;
+    if (bet == "") {
+      bet = 0;
+    }
+    var lib = #s.scripts.lib();
+    if(lib.is_str(bet)) {
+      bet = lib.to_gc_num(bet);
+    }
+    if(!lib.is_num(bet)) {
+      return bet;
+    }
+    if(bet > 1000000) {
+      return {ok:true, msg:"Maximum bet is 1MGC."};
+    }
+    if(bet > 0) {
+      var res = #s.accts.xfer_gc_to({to:"mora", amount:bet});
+      if(!res.ok) {
+        return res;
+      }
+    }
+
     //initialize deck
     for(var i = 0; i < 4; i++ ) {
       for(var j = 0; j < 13; j++) {
@@ -29,7 +49,7 @@ function (context, args) { //bet:"", action:""
     }
     deck = #s.scripts.lib().shuffle(deck);
     draws.push(deck.pop());
-    #db.i({script:"hi_lo", user:user, deck:deck, draws:draws});
+    #db.i({script:"hi_lo", user:user, deck:deck, draws:draws, bet:bet});
   }
   else {
     deck = curGame.deck;
@@ -43,9 +63,13 @@ function (context, args) { //bet:"", action:""
   var playing = true;
 
   if(args.action == "stop" && draws.length == 6) {
-    //TODO: handle bet
-    reset()
-    return {ok:true, msg:"Thanks for playing!"};
+    reset();
+    var bet = curGame.bet * 4;
+    if(#db.f({pending:true, user:user}).first() == null)
+      #db.i({pending:true, user:user, amount:bet});
+    else
+      #db.u({pending:true, user:user}, {$inc:{amount:bet}});
+    return {ok:true, msg:"Thanks for playing! Winnings will be paid next time I log in."};
   }
 
   if (h || l) {
@@ -73,7 +97,12 @@ function (context, args) { //bet:"", action:""
                "Make five more guesses to win ten times your bet."
       }
       if(draws.length == 11) {
-        msg += "\nCongratulations!";
+        var bet = curGame.bet * 10;
+        if(#db.f({pending:true, user:user}).first() == null)
+          #db.i({pending:true, user:user, amount:bet});
+        else
+          #db.u({pending:true, user:user}, {$inc:{amount:bet}});
+        msg += "\nCongratulations! Winnings will be paid next time I log in.";
         playing = false;
       }
       #db.u({script:"hi_lo", user:user}, {$set:{deck:deck, draws:draws}});
@@ -82,7 +111,7 @@ function (context, args) { //bet:"", action:""
       msg += "\nToo bad. Better luck next time!";
     }
   }
-  return{ok:true, msg:drawCards(draws)};
+  return {ok:true, msg:drawCards(draws)};
 
   //function definitions
   function reset() {
@@ -91,23 +120,22 @@ function (context, args) { //bet:"", action:""
 
   function drawCards(cards) {
     var rows = ["", "", "", "", "", "", ""];
-    var vals = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+    var vals = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
     for(var i = 0; i < cards.length; i++) {
       var c = "`" + cards[i].s;
       for(var j = 0; j < 7; j++)
         rows[j] += c;
-
       var card = cards[i];
       rows[0] += "╭-----╮`  ";
       rows[1] += "│" + vals[card.n];
-      if(card.n != 10)
+      if(vals[card.n] != "10")
         rows[1] += " ";
       rows[1] += "   │`  ";
       rows[2] += "│     │`  ";
       rows[3] += "│  ●  │`  ";
       rows[4] += "│     │`  ";
       rows[5] += "│   ";
-      if(card.n != 10)
+      if(vals[card.n] != "10")
         rows[5] += " ";
       rows[5] += vals[card.n] + "│`  ";
       rows[6] += "╰-----╯`  ";
