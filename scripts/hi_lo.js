@@ -65,11 +65,15 @@ function (context, args) { //bet:"1KGC", action:""
   if(args.action == "stop" && draws.length == 6) {
     reset();
     var bet = curGame.bet * 4;
-    if(#db.f({pending:true, user:user}).first() == null)
-      #db.i({pending:true, user:user, amount:bet});
-    else
-      #db.u({pending:true, user:user}, {$inc:{amount:bet}});
-    return {ok:true, msg:"Thanks for playing! Winnings will be paid next time I log in."};
+    var res = #s.accts.xfer_gc_to_caller({amount:curGame.bet * 4, memo:"Thanks for playing!"});
+    if(!res.ok) {
+      if(#db.f({pending:true, user:user}).first() == null)
+        #db.i({pending:true, user:user, amount:bet});
+      else
+        #db.u({pending:true, user:user}, {$inc:{amount:bet}});
+      return {ok:true, msg:"Thanks for playing. Winnings will be paid out next time I log on."};
+    }
+    return {ok:true};
   }
 
   if (h || l) {
@@ -97,12 +101,14 @@ function (context, args) { //bet:"1KGC", action:""
                "Make five more guesses to win ten times your bet."
       }
       if(draws.length == 11) {
-        var bet = curGame.bet * 10;
-        if(#db.f({pending:true, user:user}).first() == null)
-          #db.i({pending:true, user:user, amount:bet});
-        else
-          #db.u({pending:true, user:user}, {$inc:{amount:bet}});
-        msg += "\nCongratulations! Winnings will be paid next time I log in.";
+        var res = #s.accts.xfer_gc_to_caller({amount:curGame.bet * 10, memo:"Congratulations!"});
+        if(!res.ok) {
+          if(#db.f({pending:true, user:user}).first() == null)
+            #db.i({pending:true, user:user, amount:bet});
+          else
+            #db.u({pending:true, user:user}, {$inc:{amount:bet}});
+            msg += "\nCongratulations! Winnings will be paid next time I log in.";
+        }
         playing = false;
       }
       #db.u({script:"hi_lo", user:user}, {$set:{deck:deck, draws:draws}});
