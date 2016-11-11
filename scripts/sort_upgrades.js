@@ -34,10 +34,12 @@ function(context, args) {
   }
 
   for (var i = index; i < upgrades.length; i++) {
-    #s.sys.upgrades({reorder:{to:i, from:upgrades[i].from}});
-    for (var j = i + 1; j < upgrades.length; j++) {
-      if(upgrades[j].from <= upgrades[i].from) {
-        upgrades[j].from += 1;
+    if (i != upgrades[i].from) {
+      #s.sys.upgrades({reorder:{to:i, from:upgrades[i].from}});
+      for (var j = i + 1; j < upgrades.length; j++) {
+        if(upgrades[j].from <= upgrades[i].from) {
+          upgrades[j].from += 1;
+        }
       }
     }
 
