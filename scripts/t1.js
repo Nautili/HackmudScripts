@@ -14,7 +14,26 @@ function(context, args) { //t:#s.name.call
     res = res.substring(res.indexOf("ERROR"));
     if(res.includes("magnara")) {
       args.magnara = "";
-      return t.call(args);
+      res = t.call(args);
+      var magStr = res.split(" ").pop();
+
+      var permutations = [];
+      function perms(str, acc) {
+        if (str.length == 0) {
+          permutations.push(acc);
+          return;
+        }
+        for (var i = 0; i < str.length; i++) {
+          perms(str.slice(0,i) + str.slice(i+1), acc + str[i]);
+        }
+      }
+      perms(magStr, "");
+
+      var permIndex = 0;
+      while(res.includes("magnara")) {
+        args.magnara = permutations[permIndex++];
+        res = t.call(args);
+      }
     }
     if(res.includes("prime")) {
       args.ez_prime = 2;

@@ -18,7 +18,11 @@ function(context, args) {
       return -1;
     }
 
-    return u2.rarity - u1.rarity;
+    if(u1.rarity != u2.rarity) {
+      return u2.rarity - u1.rarity;
+    }
+
+    return u2.loaded - u1.loaded;
   }
 
   var start = new Date().getTime();
