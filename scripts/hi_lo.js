@@ -15,8 +15,8 @@ function (context, args) { //bet:"1KGC", action:""
           "On each turn, guess whether the next card will be higher or lower.\n" +
           "Make five correct guesses and win four times your bet.\n" +
           "Make ten correct guesses and win ten times your bet.\n" +
-          "Aces are low and drawing the same value twice is a free guess.\n" +
-          "Use action:\"start\" and make a bet up to 1MGC with bet:\"amount\" to begin!";
+          "`LAces are low and drawing the same value twice is a free guess.`\n" +
+          "Use action:\"start\" and make a bet up to 10MGC with bet:\"amount\" to begin!";
       return {ok:true, msg:m}
     }
 
@@ -31,12 +31,12 @@ function (context, args) { //bet:"1KGC", action:""
     if(!lib.is_num(bet)) {
       return bet;
     }
-    if(bet > 1000000) {
-      return {ok:true, msg:"Maximum bet is 1MGC."};
+    if(bet > 10000000) {
+      return {ok:true, msg:"Maximum bet is 10MGC."};
     }
     if(bet > 0) {
-      var res = #s.accts.xfer_gc_to({to:"mora", amount:bet});
-      if(!res.ok) {
+      var res = #s.escrow.charge({cost:bet, is_unlim:false});
+      if(res) {
         return res;
       }
     }

@@ -1,4 +1,4 @@
-function (context, args) { //s:""
-  #db.r({script:args.s});
-  return {ok:true, msg:"Cleared " + args.s};
+function (context, args) { //query:""
+  #db.r(args.query);
+  return {ok:true, msg:"Cleared"};
 }

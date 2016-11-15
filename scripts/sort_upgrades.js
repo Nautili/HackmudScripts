@@ -7,6 +7,10 @@ function(context, args) {
       return -1;
     }
 
+    if (u1.tier != u2.tier) {
+      return u2.tier - u1.tier;
+    }
+
     if (u1.name > u2.name) {
       return 1;
     }

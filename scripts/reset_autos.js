@@ -6,5 +6,6 @@ function(context, args) {
   #s.scripts.fullsec();
   #s.scripts.highsec();
   #s.scripts.user();
+  #s.scripts.sys();
   return{ok:true, msg:"Autocompletes reset!"};
 }

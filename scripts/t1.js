@@ -5,10 +5,17 @@ function(context, args) { //t:#s.name.call
   if(#s.scripts.get_level({name:t.name}) < 4) {
     return{ok:true, msg:"Security is too low!"};
   }
-  var res = t.call({});
+  var res = t.call(args);
+
+  if(res.includes("hardline"))
+    return res;
 
   while(res.includes("ERROR")) {
     res = res.substring(res.indexOf("ERROR"));
+    if(res.includes("magnara")) {
+      args.magnara = "";
+      return t.call(args);
+    }
     if(res.includes("prime")) {
       args.ez_prime = 2;
       res = t.call(args);
