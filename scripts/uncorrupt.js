@@ -19,9 +19,10 @@ function (context, args) { //t:#s.name.call, args:""
   // repeatedly compare to new outputs to clear corrupt characters
   while (remainingIndices.length > 0) {
     var newStr = JSON.stringify(args.t.call(args.args)).replace(/`.([¡¢£¤¥¦§¨©ª])`/g, "$1");
-    for (var i = remainingIndices.length; i >= 0; --i) {
-      if (corruptChars.indexOf(newStr[remainingIndices[i]]) < 0) {
-        retArr[remainingIndices[i]] = newStr[remainingIndices[i]];
+    for (var i = remainingIndices.length - 1; i >= 0; i--) {
+      var charPos = remainingIndices[i];
+      if (corruptChars.indexOf(newStr[charPos]) < 0) {
+        retArr[charPos] = newStr[charPos];
         remainingIndices.splice(i, 1);
       }
     }
