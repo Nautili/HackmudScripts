@@ -1,8 +1,8 @@
-function (context, args) {
-  var sec = #s.scripts.get_level({name:args.target.name});
+function (context, args) { //t:#s.name.call
+  var sec = #s.scripts.get_level({name:args.t.name});
   if(sec === 4) {
-    var ret = args.target.call();
-    return {ret};
+    var ret = args.t.call();
+    return ret;
   }
   else {
     return {

@@ -22,11 +22,15 @@ function (context, args) { //acct_nt:0, magnara:"", t:#s.name.call
     return{ok:true, msg:"Security is too low!"};
   }
 
-  #s.caerula.flood({amount:"1GC", times:10});
   var t2args = {sn_w_glock:"", CON_SPEC:"", acct_nt:args.acct_nt, magnara:args.magnara};
   var res = t.call(t2args);
   var type = "";
 
+  if (res.includes("hardline"))
+    return res;
+    
+  var flood = #s.caerula.flood({amount:"1GC", times:10});
+  flood;
   while (!res.includes("UNLOCKED")) {
     if (res.includes("letters")) { //CON_SPEC
       t2args.CON_SPEC = solveConSpec(res.split("\n")[0]);
@@ -44,14 +48,16 @@ function (context, args) { //acct_nt:0, magnara:"", t:#s.name.call
       }
 
       #s.caerula.get_glock({s:type});
-      #s.caerula.flood({amount:"1GC", times:10});
+      flood;
     }
     else if (res.includes("magnara")) { //handle this manually
       return res;
     }
     else { //acct_nt
-      if (res.includes("large"))
+      if (res.includes("large")) {
+        flood;
         t2args.acct_nt = 1;
+      }
       else {
         return {ok:false, msg:res, args:t2args};
       }

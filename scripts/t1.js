@@ -57,15 +57,12 @@ function(context, args) { //t:#s.name.call
     }
     else if(res.includes("EZ")) {
       var ix = res.indexOf("EZ");
-      var i = 0;
       var l = res.substring(ix, ix + 5);
-      args[l] = pass[i];
-      res = t.call(args);
-
-      while(res.includes("correct")) {
-        args[l] = pass[++i];
+      var i = 0;
+      do {
+        args[l] = pass[i++];
         res = t.call(args);
-      }
+      } while(res.includes("correct"))
     }
     else { //colors
       var ix = res.indexOf("c00");
@@ -81,17 +78,15 @@ function(context, args) { //t:#s.name.call
       if(res.includes("ERROR")) {
         if(l === "c001") {
           args.color_digit = colors[i].length;
-          res = t.call(args);
         }
         else if(l === "c002") {
           args.c002_complement = colors[(i + 4) % 8];
-          res = t.call(args);
         }
         else if(l === "c003") {
           args.c003_triad_1 = colors[(i + 3) % 8];
           args.c003_triad_2 = colors[(i + 5) % 8];
-          res = t.call(args);
         }
+        res = t.call(args);
       }
     }
   }
