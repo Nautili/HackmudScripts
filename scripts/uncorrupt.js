@@ -1,4 +1,9 @@
-function (context, args) { //t:#s.name.call, args:{}
+function (context, args) { //t:#s.name.call, args:""
+  var res = #s.escrow.charge({cost:"100KGC", is_unlim:true});
+  if(res) {
+    return res;
+  }
+
   var corruptChars = "¡¢£¤¥¦§¨©ª";
   var ret = JSON.stringify(args.t.call(args.args));
   var retArr = ret.replace(/`.([¡¢£¤¥¦§¨©ª])`/g, "$1").split("");
@@ -6,7 +11,7 @@ function (context, args) { //t:#s.name.call, args:{}
   var remainingIndices = [];
   for (var i = 0; i < retArr.length; i++) {
     if (corruptChars.indexOf(retArr[i]) > -1)
-    remainingIndices.push(i);
+      remainingIndices.push(i);
   }
 
   while (remainingIndices.length > 0) {
