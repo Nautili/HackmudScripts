@@ -28,7 +28,7 @@ function (context, args) { //acct_nt:0, magnara:"", t:#s.name.call
 
   if (res.includes("hardline"))
     return res;
-    
+
   var flood = #s.caerula.flood({amount:"1GC", times:10});
   flood;
   while (!res.includes("UNLOCKED")) {
@@ -55,7 +55,6 @@ function (context, args) { //acct_nt:0, magnara:"", t:#s.name.call
     }
     else { //acct_nt
       if (res.includes("large")) {
-        flood;
         t2args.acct_nt = 1;
       }
       else {

@@ -1,9 +1,4 @@
 function (context, args) { //t:#s.name.call, args:""
-  var res = #s.escrow.charge({cost:"100KGC", is_unlim:true});
-  if(res) {
-    return res;
-  }
-
   // object to string and remove color codes
   var corruptChars = "¡¢£¤¥¦§¨©ª";
   var ret = JSON.stringify(args.t.call(args.args));
