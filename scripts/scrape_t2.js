@@ -5,7 +5,7 @@ function (context, args) { //fs:#s.name.call, hs:#s.name.call
   var cmdObj = {};
   cmdObj[pubCmd] = news;
   var posts = JSON.stringify(#s.mora.uncorrupt({t:args.fs, args:cmdObj}));
-  var people = posts.match(/n([a-z_]+) of p/);
+  var people = posts.match(/n(\w+) of p/);
 
   var memArgs = {};
   var i = 1;
@@ -19,12 +19,18 @@ function (context, args) { //fs:#s.name.call, hs:#s.name.call
   }
 
   var qrs = #s.mora.uncorrupt({t:args.hs, args:memArgs});
-  var locs = [];
+  var retVal = {qrRecs:[], errors:[]}
   for (var i = 0; i < qrs.length; i++) {
     if (qrs[i].charAt(0) == "█") {
-      return #s.mora.qr({s:qrs[i]});
-      //locs.concat(#s.mora.qr({s:qrs[i]}));
+      var res = #s.mora.qr({s:qrs[i]});
+      return res;
+      if (!res.ok) {
+        retVal.errors.push(res);
+      }
+      else {
+        retVal.qrRecs.push(res);
+      }
     }
   }
-  return locs;
+  return retVal;
 }
