@@ -22,6 +22,10 @@ function (context, args) { //magnara:"", t:#s.name.call
     return{ok:true, msg:"Security is too low!"};
   }
 
+  if (#s.accts.balance() > 0) {
+    #s.mora.to_bank();
+  }
+
   var t2args = {sn_w_glock:"", CON_SPEC:"", acct_nt:0, magnara:args.magnara};
   var res = t.call(t2args);
   var type = "";

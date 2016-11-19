@@ -10,7 +10,7 @@ function (context, args) {
     }
     upgradeCounts[name]++;
 
-    if (!(upgrades[i].loaded || upgrades[i].rarity > 1) && upgradeCounts[name] > 2) {
+    if (!(upgrades[i].loaded || upgrades[i].rarity > 0) && upgradeCounts[name] > 2) {
       upgradesToRemove.push(i);
     }
   }
