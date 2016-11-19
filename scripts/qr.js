@@ -13,7 +13,6 @@ function (context, args) { // s:""
   }
   //---------------------------------------
 
-  //TODO: Find out where the bugs are
   var rows = args.s.split("\n");
   var size = rows[0].length;
   var sizeDict = {45:[6,22,38], 49:[6,24,42], 53:[6,26,46]}
@@ -53,6 +52,7 @@ function (context, args) { // s:""
 
   // apply bitmask
   var qrMask = (qrMat[8][2] * 4 + qrMat[8][3] * 2 + qrMat[8][4]) ^ 5;
+  //return qrMask;
   var maskFun = function(){};
   switch (qrMask) {
     case 0:
@@ -91,7 +91,7 @@ function (context, args) { // s:""
   }
   //return printQrMat();
 
-  //remove non-data
+  //flag non-data for removal
   //finders
   for(var i = 0; i <= 8; i++) {
     for (var j = 0; j <= 8; j++) {
@@ -145,7 +145,7 @@ function (context, args) { // s:""
   }
   //return args.s + printQrMat();
 
-  // turn qrmat into stream
+  // turn qrMat into stream
   var qrStream = "";
   // grab each column in the proper direction
   for (var col = size - 2; col >=0 ; col -= 2) {
@@ -165,14 +165,28 @@ function (context, args) { // s:""
     }
   }
 
-  qrStream = qrStream.replace(/2/g, "");
-  //return printQrMat() + qrStream;
-  if (qrStream.substring(0,4) != "0100") {
-    return {ok:false, msg:"QR code is not in byte format."}
+  var rawQrStream = qrStream.replace(/2/g, "");
+  if (rawQrStream.substring(0,4) != "0100") {
+    return {ok:false, msg:"QR code is not in byte format."};
   }
+  var rawQrBytes = rawQrStream.match(/.{1,8}/g);
+  //return printQrMat() + "\n" + rawQrBytes;
+
+  //reorder error bytes from error correction
+  var ecDict = {45:{gap:13, blocks:5}, 49:{gap:14, blocks:6}, 53:{gap:15, blocks:8}};
+  var gap = ecDict[size].gap;
+  var blocks = ecDict[size].blocks
+  var ecQrBytes = [];
+  for(var i = 0; i < gap; i++) {
+    for (var j = 0; j < blocks; j++) {
+      ecQrBytes.push(rawQrBytes[j * gap + i]);
+    }
+  }
+
+  var qrStream = ecQrBytes.concat(rawQrBytes.slice(gap * blocks)).join("");
   var qrLength = parseInt(qrStream.substring(4,12), 2);
-  var qrBytes = qrStream.substring(12).match(/.{1,8}/g).slice(0,qrLength);
-  //return qrBytes;
+  var qrBytes = qrStream.substring(12).match(/.{1,8}/g).slice(0, qrLength);
+  //return rawQrBytes.join(" ") + "\n\n" + ecQrBytes.join(" ");
 
   var qrString = qrBytes.map(function (s) { return String.fromCharCode(parseInt(s, 2))}).join("");
   return qrString;
