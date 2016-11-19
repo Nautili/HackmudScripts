@@ -151,7 +151,8 @@ function (context, args) { // s:""
   }
   var rawQrBytes = rawQrStream.match(/.{1,8}/g);
 
-  //reorder error bytes from error correction
+  // reorder error bytes from error correction
+  // split indices into blocks with proper lengths
   var ecDict = {45:{blocks:[[13,4], [14,1]]},
                 49:{blocks:[[14,4], [15,2]]},
                 53:{blocks:[[12,4], [13,4]]}};
@@ -178,6 +179,7 @@ function (context, args) { // s:""
     }
   }
 
+  // reorder bytes
   var ecQrBytes = new Array(numBlocks);
   for (var i = 0; i < indices.length; i++) {
     ecQrBytes[indices[i]] = rawQrBytes[i];
