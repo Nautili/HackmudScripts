@@ -72,6 +72,9 @@ function (context, args) { //magnara:"", t:#s.name.call
     }
 
     res = t.call(t2args);
+    if (typeof res != "string") {
+      return res;
+    }
   }
 
   #s.mora.to_bank();
