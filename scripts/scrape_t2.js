@@ -1,4 +1,5 @@
 function (context, args) { //s:"tyrell"
+  var start = new Date().getTime();
   // find corp scripts
   if (args.fs == null || args.hs == null) {
     var re = "(" + args.s + "\.\\w+)";
@@ -21,44 +22,49 @@ function (context, args) { //s:"tyrell"
     people.push(person[1]);
   }
 
-  // get first user with a member login
-  var memArgs = {};
-  var memCmd = null;
-  var i = 1;
-  while (memCmd == null) {
-    if (i >= people.length) {
-      return {ok:false, msg:"No npcs had member logins."};
-    }
-    memArgs.username = people[i++];
-    memCmd = #s.mora.uncorrupt({t:args.hs, args:memArgs}).match(/!(\w+)!/);
-  }
-  memArgs[memCmd[1]] = "order_qrs";
-
-  // get objects from qr codes
-  var qrs = #s.mora.uncorrupt({t:args.hs, args:memArgs});
-  var qrRet = {qrRecs:[], errors:[]}
-  for (var i = 0; i < qrs.length; i++) {
-    if (qrs[i].charAt(0) == "█") {
-      var res = #s.mora.qr({s:qrs[i]});
-      if (res.ok === false) {
-        qrRet.errors.push(res);
-      }
-      else {
-        qrRet.qrRecs.push(res);
-      }
-    }
-  }
-
-  // get npc locs
+  // get qrs within time limit
+  var errors = [];
   var locs = [];
-  memArgs[memCmd[1]] = "cust_service";
-  for (var i = 0; i < qrRet.qrRecs.length; i++) {
-    memArgs["order_id"] = qrRet.qrRecs[i].id;
-    var locStr = #s.mora.uncorrupt({t:args.hs, args:memArgs});
-    locs = locs.concat(locStr.substring(locStr.indexOf(":") + 2).match(/\w+\.\w+/g));
+  var pidx = 0;
+  var count = 0;
+  while (new Date().getTime() - start < 3000 && pidx < people.length) {
+    var memArgs = {};
+    var memCmd = null;
+    while (memCmd == null) {
+      memArgs.username = people[pidx++];
+      memCmd = #s.mora.uncorrupt({t:args.hs, args:memArgs}).match(/!(\w+)!/);
+    }
+    memArgs[memCmd[1]] = "order_qrs";
+
+    // get objects from qr codes
+    var qrs = #s.mora.uncorrupt({t:args.hs, args:memArgs});
+    var qrRet = {qrRecs:[], errors:[]};
+    for (var i = 0; i < qrs.length; i++) {
+      if (qrs[i].charAt(0) == "█") {
+        var res = #s.mora.qr({s:qrs[i]});
+        if (res.ok === false) {
+          qrRet.errors.push(res);
+        }
+        else {
+          qrRet.qrRecs.push(res);
+        }
+      }
+    }
+    errors = errors.concat(qrRet.errors);
+
+    // get npc locs
+    memArgs[memCmd[1]] = "cust_service";
+    for (var i = 0; i < qrRet.qrRecs.length; i++) {
+      memArgs["order_id"] = qrRet.qrRecs[i].id;
+      var locStr = #s.mora.uncorrupt({t:args.hs, args:memArgs});
+      var curLocs = locStr.substring(locStr.indexOf(":") + 2).match(/\w+\.\w+/g);
+      if (curLocs != null)
+        locs = locs.concat(curLocs);
+    }
   }
+
   if (qrRet.errors.length > 0) {
-    return {errors:qrRet.errors, locs:locs};
+    return {errors:errors, locs:locs};
   }
-  return locs;
+  return locs.sort();
 }

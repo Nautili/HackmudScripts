@@ -7,7 +7,7 @@ function(context, args) { //t:#s.name.call
   }
   var res = t.call(args);
 
-  if(res.includes("hardline"))
+  if(res.includes("hardline") || res.includes("breached"))
     return res;
 
   while(res.includes("ERROR")) {

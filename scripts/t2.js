@@ -1,4 +1,4 @@
-function (context, args) { //acct_nt:0, magnara:"", t:#s.name.call
+function (context, args) { //magnara:"", t:#s.name.call
   function solveConSpec(str) {
     var gap1 = str.charCodeAt(1) - str.charCodeAt(0);
     var gap2 = str.charCodeAt(2) - str.charCodeAt(1);
@@ -22,15 +22,15 @@ function (context, args) { //acct_nt:0, magnara:"", t:#s.name.call
     return{ok:true, msg:"Security is too low!"};
   }
 
-  var t2args = {sn_w_glock:"", CON_SPEC:"", acct_nt:args.acct_nt, magnara:args.magnara};
+  var t2args = {sn_w_glock:"", CON_SPEC:"", acct_nt:0, magnara:args.magnara};
   var res = t.call(t2args);
   var type = "";
 
-  if (res.includes("hardline"))
+  if (res.includes("hardline") || res.includes("breached"))
     return res;
 
-  var flood = #s.caerula.flood({amount:"1GC", times:10});
-  flood;
+  var flood = #s.caerula.flood({amount:"1GC", times:8});
+  var acct_ntFlag = false;
   while (!res.includes("UNLOCKED")) {
     if (res.includes("letters")) { //CON_SPEC
       t2args.CON_SPEC = solveConSpec(res.split("\n")[0]);
@@ -47,17 +47,22 @@ function (context, args) { //acct_nt:0, magnara:"", t:#s.name.call
         return {ok:false, msg:"Unknown glock type:\n" + res};
       }
 
-      #s.caerula.get_glock({s:type});
-      flood;
+      #s.caerula.from_bank({s:type});
+      if(acct_ntFlag)
+        flood;
     }
     else if (res.includes("magnara")) { //handle this manually
       return res;
     }
     else { //acct_nt
-      if (res.includes("large")) {
-        t2args.acct_nt = 1;
+      acct_ntFlag = true;
+      flood;
+      t2args.acct_nt += 1;
+      if (!res.includes("total") && t2args.acct_nt > 1) {
+        // avoiding modulo because acct_nt ideally starts at 0
+        t2args.acct_nt = -1;
       }
-      else {
+      if (t2args.acct_nt > 8) {
         return {ok:false, msg:res, args:t2args};
       }
     }
