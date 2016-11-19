@@ -1,18 +1,4 @@
 function (context, args) { // s:""
-  //DEBUG
-  //return args.s;
-  function printQrMat() {
-    var qrStr = "";
-    for (var row = 0; row < qrMat.length; row++) {
-      for (var col = 0; col < qrMat[row].length; col++) {
-        qrStr += qrMat[row][col];
-      }
-      qrStr += "\n";
-    }
-    return qrStr;
-  }
-  //---------------------------------------
-
   var rows = args.s.split("\n");
   var size = rows[0].length;
   var sizeDict = {45:[6,22,38], 49:[6,24,42], 53:[6,26,46]}
@@ -21,7 +7,7 @@ function (context, args) { // s:""
   }
 
   // translate to bit matrix and remove last two rows
-  var qrMat = []
+  var qrMat = [];
   for (var row = 0; row < rows.length - 1; row++) {
     var row1 = [];
     var row2 = [];
@@ -48,11 +34,9 @@ function (context, args) { // s:""
     qrMat.push(row2);
   }
   qrMat.pop();
-  //return args.s + printQrMat();
 
   // apply bitmask
   var qrMask = (qrMat[8][2] * 4 + qrMat[8][3] * 2 + qrMat[8][4]) ^ 5;
-  //return qrMask;
   var maskFun = function(){};
   switch (qrMask) {
     case 0:
@@ -82,14 +66,11 @@ function (context, args) { // s:""
 
   for (var row = 0; row < size; row++) {
     for (var col = 0; col < size; col++) {
-      //qrMat[row][col] = " ";
       if (maskFun(row, col)) {
         qrMat[row][col] ^= 1;
-        //qrMat[row][col] = "█";
       }
     }
   }
-  //return printQrMat();
 
   //flag non-data for removal
   //finders
@@ -143,7 +124,6 @@ function (context, args) { // s:""
   for (var i = 0; i < size; i++) {
     qrMat[i].splice(6,1);
   }
-  //return args.s + printQrMat();
 
   // turn qrMat into stream
   var qrStream = "";
@@ -170,25 +150,46 @@ function (context, args) { // s:""
     return {ok:false, msg:"QR code is not in byte format."};
   }
   var rawQrBytes = rawQrStream.match(/.{1,8}/g);
-  //return printQrMat() + "\n" + rawQrBytes;
 
   //reorder error bytes from error correction
-  var ecDict = {45:{gap:13, blocks:5}, 49:{gap:14, blocks:6}, 53:{gap:15, blocks:8}};
-  var gap = ecDict[size].gap;
-  var blocks = ecDict[size].blocks
-  var ecQrBytes = [];
-  for(var i = 0; i < gap; i++) {
-    for (var j = 0; j < blocks; j++) {
-      ecQrBytes.push(rawQrBytes[j * gap + i]);
+  var ecDict = {45:{blocks:[[13,4], [14,1]]},
+                49:{blocks:[[14,4], [15,2]]},
+                53:{blocks:[[12,4], [13,4]]}};
+
+  var blocks = ecDict[size].blocks;
+  var numBlocks = blocks[0][0] * blocks[0][1] + blocks[1][0] * blocks[1][1];
+  var nums = [];
+  for (var i = 0; i < numBlocks; i++) {
+    nums.push(i);
+  }
+  var indexBlocks = [];
+  for (var i = 0; i < blocks.length; i++) {
+    for (var j = 0; j < blocks[i][1]; j++) {
+      indexBlocks.push(nums.splice(0, blocks[i][0]));
     }
   }
 
-  var qrStream = ecQrBytes.concat(rawQrBytes.slice(gap * blocks)).join("");
-  var qrLength = parseInt(qrStream.substring(4,12), 2);
-  var qrBytes = qrStream.substring(12).match(/.{1,8}/g).slice(0, qrLength);
-  //return rawQrBytes.join(" ") + "\n\n" + ecQrBytes.join(" ");
+  var indices = [];
+  for (var i = 0; i < indexBlocks[indexBlocks.length - 1].length; i++) {
+    for (var j = 0; j < indexBlocks.length; j++) {
+      if (indexBlocks[j][i] != null) {
+        indices.push(indexBlocks[j][i]);
+      }
+    }
+  }
+
+  var ecQrBytes = new Array(numBlocks);
+  for (var i = 0; i < indices.length; i++) {
+    ecQrBytes[indices[i]] = rawQrBytes[i];
+  }
+
+  var reQrStream = ecQrBytes.join("");
+  if (reQrStream.substring(0,4) != "0100") {
+    return {ok:false, msg:"QR code is not in byte format."};
+  }
+  var qrLength = parseInt(reQrStream.substring(4,12), 2);
+  var qrBytes = reQrStream.substring(12).match(/.{1,8}/g).slice(0, qrLength);
 
   var qrString = qrBytes.map(function (s) { return String.fromCharCode(parseInt(s, 2))}).join("");
-  return qrString;
-  //return JSON.parse(qrString);
+  return JSON.parse(qrString);
 }
