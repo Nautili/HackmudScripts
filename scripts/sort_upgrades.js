@@ -1,10 +1,18 @@
 function(context, args) {
+  var lockOrder = ["w4rn", "ez_40", "sn_w_glock", "acct_nt", "c001", "ez_35", "CON_SPEC", "c002", "ez_21", "c003", "magnara"]
   function upgradeCompare(u1, u2) {
     if (u1.type > u2.type) {
       return 1;
     }
     else if (u1.type < u2.type) {
       return -1;
+    }
+
+    if (u1.type == "lock" && u2.type == "lock") {
+      var diff = lockOrder.indexOf(u1.name) - lockOrder.indexOf(u2.name);
+      if (diff != 0) {
+        return diff;
+      }
     }
 
     if (u1.tier != u2.tier) {
@@ -26,6 +34,11 @@ function(context, args) {
   }
 
   var start = new Date().getTime();
+  var res = #s.escrow.charge({cost:"10MGC", is_unlim:true});
+  if(res) {
+    return res
+  }
+
   var query = #db.f({script:"sort_upgrades", user:context.caller}).first();
   if (query == null) {
     var index = 0;
