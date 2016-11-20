@@ -1,5 +1,5 @@
 function(context, args) {
-  var lockOrder = ["w4rn", "ez_40", "sn_w_glock", "acct_nt", "c001", "ez_35", "CON_SPEC", "c002", "ez_21", "c003", "magnara"]
+  var lockOrder = ["sn_w_glock", "ez_40", "acct_nt", "c001", "ez_35", "CON_SPEC", "c002", "ez_21", "c003", "magnara", "w4rn"]
   function upgradeCompare(u1, u2) {
     if (u1.type > u2.type) {
       return 1;
